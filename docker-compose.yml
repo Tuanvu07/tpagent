@@ -1,0 +1,38 @@
+# TPAgent trên VPS / máy riêng:  cp deploy/.env.example .env  ->  điền key  ->  docker compose up -d
+services:
+  tpagent:
+    build: .
+    image: tpagent:latest
+    container_name: tpagent
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: "8080"
+      HOME: /data
+      TPAGENT_HOME: /data
+      TPAGENT_WORKSPACE: /data/workspace
+      TPAGENT_BROWSER_HEADLESS: "1"
+      # Cloud không có màn hình -> không nạp module computer.
+      # (Core đọc enabled_tools từ config.yaml; file deploy/config.cloud.yaml đã đặt sẵn
+      #  [browser, video, subagent]. Biến này để dành khi core hỗ trợ ghi đè bằng env.)
+      TPAGENT_ENABLED_TOOLS: browser,video,subagent
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - tpagent_data:/data
+    # Chromium + ffmpeg cần RAM; 1GB là mức tối thiểu, 2GB thoải mái.
+    shm_size: "512m"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health >/dev/null || curl -fsS http://127.0.0.1:8080/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+volumes:
+  tpagent_data:

@@ -1,0 +1,85 @@
+# ============================================================
+#  TPAgent - file cấu hình mẫu
+#  Sao chép thành ./config.yaml (trong thư mục dự án) hoặc ~/.tpagent/config.yaml
+#  Biến môi trường luôn ưu tiên hơn file này (ANTHROPIC_API_KEY, DEEPSEEK_API_KEY,
+#  DASHSCOPE_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY, OLLAMA_HOST).
+# ============================================================
+
+# --- Nhà cung cấp model (chỉ cần điền những cái anh dùng) ---
+providers:
+  # Anthropic: xương sống. Haiku 5.5 rẻ ($0.10/$0.50 mỗi 1M token), có vision + tool-use.
+  anthropic:
+    api_key: ""            # hoặc đặt env ANTHROPIC_API_KEY
+    # base_url: ""         # để trống dùng mặc định
+
+  # DeepSeek V4: mạnh về code, rẻ ($0.22/$0.66). Tương thích OpenAI.
+  # deepseek:
+  #   api_key: ""          # env DEEPSEEK_API_KEY
+  #   base_url: https://api.deepseek.com
+  #   model: deepseek-chat
+
+  # Qwen (Alibaba DashScope): Qwen3.7 Flash rẻ nhất thị trường ($0.03/$0.13).
+  # qwen:
+  #   api_key: ""          # env DASHSCOPE_API_KEY
+  #   base_url: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+  #   model: qwen3.7-flash
+
+  # Google Gemini qua endpoint tương thích OpenAI. Gemini 3 Flash: $0.50/$3.00, 1M context.
+  # gemini:
+  #   api_key: ""          # env GEMINI_API_KEY
+  #   base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+  #   model: gemini-3-flash
+
+  # OpenRouter: 1 key dùng được mọi model. Tên model dạng "nhà/model", vd qwen/qwen3.7-flash.
+  # openrouter:
+  #   api_key: ""          # env OPENROUTER_API_KEY
+  #   base_url: https://openrouter.ai/api/v1
+  #   model: qwen/qwen3.7-flash
+
+  # Ollama chạy local, miễn phí (chậm hơn). Cần `ollama pull qwen3:8b`.
+  # ollama:
+  #   base_url: http://localhost:11434/v1   # hoặc env OLLAMA_HOST=http://host:11434
+  #   model: qwen3:8b
+
+  # OpenAI chính hãng (ít dùng vì đắt hơn).
+  # openai:
+  #   api_key: ""          # env OPENAI_API_KEY
+  #   model: gpt-5-mini
+
+# --- Bậc model: router tự chọn theo độ khó của việc ---
+# Giá trị là tên model. Nhà cung cấp được đoán theo tên (claude-* -> anthropic,
+# deepseek-* -> deepseek, qwen/* -> openrouter, qwen* -> qwen, gemini-* -> gemini).
+# Ép nhà cung cấp bằng tiền tố "ten_provider:model", vd "ollama:qwen3:8b".
+tiers:
+  # Chế độ "Claude Max" (mặc định): toàn bộ chạy Claude, mạnh nhất.
+  cheap: claude-haiku-5-5        # $0.10/$0.50 — việc nhỏ, subagent, tóm tắt
+  standard: claude-sonnet-5-5    # $2/$10    — code hằng ngày (model chính của Claude Code)
+  strong: claude-opus-5-5        # $4/$20    — kiến trúc, debug khó
+  # Chế độ tiết kiệm: đổi standard -> claude-haiku-5-5, strong -> claude-sonnet-5-5
+
+# Bậc mặc định khi anh dùng --model/--tier không truyền gì và router không chắc.
+default_tier: standard
+
+# Ép toàn bộ về 1 nhà cung cấp (bỏ qua đoán theo tên). Dùng "fake" để demo không cần key.
+# default_provider: anthropic
+
+# --- Suy nghĩ mở rộng (extended thinking, chỉ model Claude) ---
+# Số token model được "nghĩ" trước khi trả lời, theo bậc. 0 = tắt. Bật/tắt tạm trong REPL: /think on|off
+thinking:
+  cheap: 0
+  standard: 0
+  strong: 4000
+
+# --- Giới hạn & an toàn ---
+max_turns: 40                  # số vòng gọi model tối đa cho 1 việc
+context_limit_tokens: 80000    # vượt ngưỡng này thì tóm tắt lịch sử (giữ < 100K để Haiku còn giá rẻ)
+max_output_tokens: 8000
+auto_approve: false            # true = không hỏi khi chạy lệnh nguy hiểm (giống --yes)
+safe_commands_auto: true       # bash: chỉ hỏi với lệnh phá hoại (rm -rf, sudo, git push --force...)
+allow_outside_cwd: false       # cho phép tool file đọc/ghi ngoài thư mục hiện tại
+
+# --- Module tool tùy chọn (cần cài extras: pip install tpagent[browser,computer,video]) ---
+enabled_tools: [browser, computer, video, subagent]   # mặc định bật hết; để [] nếu chỉ cần code
+
+# Nơi lưu lịch sử phiên (JSON)
+# sessions_dir: ~/.tpagent/sessions

@@ -1,0 +1,30 @@
+# ============================================================
+#  TPAgent - cấu hình khi chạy trên cloud (Docker / Railway / Render / Fly / VPS)
+#  File này được copy vào /app/config.yaml và (lần đầu) /data/.tpagent/config.yaml.
+#  Muốn sửa: sửa bản trong volume /data/.tpagent/config.yaml rồi restart (không cần rebuild).
+#  API key KHÔNG để ở đây — đặt biến môi trường ANTHROPIC_API_KEY trên nền tảng cloud.
+# ============================================================
+
+# Bậc model: mặc định "Claude Max". Tiết kiệm hơn: standard -> claude-haiku-5-5
+tiers:
+  cheap: claude-haiku-5-5
+  standard: claude-sonnet-5-5
+  strong: claude-opus-5-5
+default_tier: standard
+
+# Giới hạn & an toàn
+max_turns: 40
+context_limit_tokens: 80000
+max_output_tokens: 8000
+# Trên web không có terminal để hỏi "y/n" từng lệnh; server tự xử lý xác nhận qua giao diện.
+# Để true nếu giao diện web của anh chưa có nút xác nhận và anh chấp nhận agent tự chạy.
+auto_approve: false
+safe_commands_auto: true
+allow_outside_cwd: false
+
+# Trên cloud KHÔNG có màn hình -> bỏ module "computer" (pyautogui/mss vô nghĩa trong server).
+# Có thể ghi đè bằng biến môi trường TPAGENT_ENABLED_TOOLS=browser,video,subagent (nếu core hỗ trợ).
+enabled_tools: [browser, video, subagent]
+
+# Lịch sử phiên nằm trong volume để không mất khi redeploy
+sessions_dir: /data/sessions

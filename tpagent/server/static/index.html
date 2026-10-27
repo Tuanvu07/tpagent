@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>TPAgent</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'%3ETP%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" defer></script>
+</head>
+<body>
+
+<!-- Login -->
+<section id="login" class="login hidden">
+  <form id="login-form" class="login-card">
+    <h1>TPAgent</h1>
+    <p>Dán <b>token</b> hiện trong cửa sổ chạy server (hoặc biến <code>TPAGENT_TOKEN</code>).</p>
+    <input id="login-token" type="password" placeholder="Token" autocomplete="current-password" required>
+    <button type="submit" class="btn primary">Đăng nhập</button>
+    <p id="login-error" class="error"></p>
+  </form>
+</section>
+
+<!-- App -->
+<div id="app" class="app hidden">
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-head">
+      <span class="brand">TPAgent</span>
+      <button id="btn-new" class="btn primary small">+ Phiên mới</button>
+    </div>
+    <ul id="session-list" class="session-list"></ul>
+    <div class="sidebar-foot">
+      <button id="btn-logout" class="btn ghost small">Đăng xuất</button>
+    </div>
+  </aside>
+  <div id="backdrop" class="backdrop hidden"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button id="btn-menu" class="icon-btn" aria-label="Danh sách phiên">☰</button>
+      <div class="topbar-title">
+        <span id="session-title">Chưa chọn phiên</span>
+        <span id="status-dot" class="dot" title="Kết nối"></span>
+      </div>
+      <span id="cost-badge" class="badge" title="Chi phí phiên này">$0.0000</span>
+      <button id="btn-files" class="icon-btn" aria-label="File">📁</button>
+    </header>
+
+    <section id="chat" class="chat">
+      <div id="empty" class="empty">
+        <h2>Xin chào anh Tuấn 👋</h2>
+        <p>Chọn một phiên bên trái hoặc bấm <b>Phiên mới</b>, rồi gõ việc cần làm.<br>
+        Ví dụ: “cắt khoảng lặng trong raw.mp4 và xuất 9:16”, “viết 3 bài quảng cáo cho tiệm”.</p>
+      </div>
+    </section>
+
+    <footer class="composer">
+      <div class="composer-row">
+        <select id="tier" class="select" title="Chọn model">
+          <option value="">Tự động</option>
+          <option value="cheap">Nhanh-rẻ</option>
+          <option value="standard">Chuẩn</option>
+          <option value="strong">Mạnh</option>
+        </select>
+        <label class="toggle" title="Tự động cho phép lệnh nguy hiểm (không hỏi lại)">
+          <input id="auto-approve" type="checkbox"><span>Tự duyệt</span>
+        </label>
+        <span class="spacer"></span>
+        <button id="btn-cancel" class="btn danger small hidden">■ Dừng</button>
+      </div>
+      <div class="composer-row">
+        <textarea id="input" rows="1" placeholder="Gõ việc cần làm… (Enter để gửi, Shift+Enter xuống dòng)"></textarea>
+        <button id="btn-send" class="btn primary" aria-label="Gửi">➤</button>
+      </div>
+    </footer>
+  </main>
+
+  <aside id="filepanel" class="filepanel">
+    <div class="panel-head">
+      <span>File của phiên</span>
+      <button id="btn-files-close" class="icon-btn" aria-label="Đóng">✕</button>
+    </div>
+    <div id="dropzone" class="dropzone">
+      Kéo thả file vào đây hoặc <label class="link">chọn file<input id="file-input" type="file" multiple hidden></label>
+      <div id="upload-progress" class="muted"></div>
+    </div>
+    <ul id="file-list" class="file-list"></ul>
+    <div id="preview" class="preview"></div>
+  </aside>
+</div>
+
+<template id="tpl-approval">
+  <div class="card approval">
+    <div class="card-title">⚠️ Cho phép chạy <b class="tool"></b>?</div>
+    <pre class="args"></pre>
+    <div class="actions">
+      <button class="btn primary small" data-act="allow">Cho phép</button>
+      <button class="btn small" data-act="always">Luôn cho phép</button>
+      <button class="btn danger small" data-act="deny">Từ chối</button>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-question">
+  <div class="card question">
+    <div class="card-title">❓ <span class="q"></span></div>
+    <div class="actions options"></div>
+    <div class="actions">
+      <input class="free" type="text" placeholder="Hoặc trả lời tự do…">
+      <button class="btn primary small" data-act="send">Trả lời</button>
+    </div>
+  </div>
+</template>
+
+<script src="/static/chat.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

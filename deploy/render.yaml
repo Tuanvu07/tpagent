@@ -1,0 +1,34 @@
+# Render Blueprint cho TPAgent.
+# Render chỉ đọc file này khi nó nằm ở GỐC repo: copy ra gốc (cp deploy/render.yaml ./render.yaml)
+# rồi Dashboard -> New -> Blueprint -> chọn repo. Hoặc tạo Web Service tay theo docs/deploy.md.
+services:
+  - type: web
+    name: tpagent
+    runtime: docker
+    plan: starter            # free: ngủ sau 15 phút, không gắn được disk, 512MB -> Chromium hay chết
+    region: singapore        # gần Việt Nam nhất
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: tpagent-data
+      mountPath: /data
+      sizeGB: 5
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false          # nhập tay trong Dashboard, không lưu trong repo
+      - key: TPAGENT_TOKEN
+        generateValue: true  # Render tự sinh token mạnh; xem trong tab Environment
+      - key: PORT
+        value: "8080"
+      - key: HOME
+        value: /data
+      - key: TPAGENT_HOME
+        value: /data
+      - key: TPAGENT_WORKSPACE
+        value: /data/workspace
+      - key: TPAGENT_BROWSER_HEADLESS
+        value: "1"
+      - key: TPAGENT_ENABLED_TOOLS
+        value: browser,video,subagent
